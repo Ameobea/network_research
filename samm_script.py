@@ -2,8 +2,8 @@
 # Written by Sammantha Nowak-Wolff and Casey Primozic
 
 import networkx as nx
-import os
-from multiprocessing import Process, Queue
+import os, threading
+import Queue, sys, trace
 
 maxRunTime=9
 
@@ -31,19 +31,19 @@ def process(a):
     chordal= nx.is_chordal(a)
     print("Chordal: " + str(chordal))
   except Exception, e:
-    print(e)
+    print("Chordal: error")
 
   try:
     center= nx.center(a)
-    print(str(center))
+    print("Center: " + str(center))
   except Exception, e:
-    print(e)
+    print("Center: error")
 
   try:
     transitivity = nx.transitivity(a)
-    print(str(transitivity))
+    print("Transitivity: " + str(transitivity))
   except Exception, e:
-    print(e)
+    print("Transitivity: error")
 
   print(nx.info(a))
 
@@ -101,6 +101,8 @@ def getMax(d):
     return d
 
   max=0
+  if len(d) == 0:
+    return 0
   for key in d:
     if max<d[key]:
       max=d[key]
@@ -110,39 +112,75 @@ def getMax(d):
 def calc(func, args):
   return calc(func, args, False)
 
+class workerThread(threading.Thread):
+  def __init__(self, func, args, q, postProc):
+    threading.Thread.__init__(self)
+    self.func = func
+    self.args = args
+    self.q=q
+    self.postProc = postProc
+    self.killed=False
+
+  def start(self):
+    self.__run_backup = self.run
+    self.run = self.__run
+    threading.Thread.start(self)
+
+  def __run(self):
+    sys.settrace(self.globaltrace)
+    self.__run_backup()
+    self.run = self.__run_backup
+
+  def globaltrace(self, frame, why, arg):
+    if why == 'call':
+      return self.localtrace
+    else:
+      return None
+
+  def localtrace(self, frame, why, arg):
+    if self.killed:
+      if why == 'line':
+        raise SystemExit()
+    return self.localtrace
+
+  def kill(self):
+    self.killed = True
+
+  def run(self):
+    res=self.func(*self.args)
+    if(self.postProc):
+      res2=[]
+      for proc in self.postProc:
+        if res=="error":
+          res2.append(res)
+        else:
+          res2.append(proc(res))
+      self.q.put(res2)
+    else:
+      self.q.put(res)
+
 # args in the form of a tuple, cannot contain q as an argument
 # postProc in the form of a list which contains functions which are run on the result of func
 def calc(func, args, postProc):
-  q = Queue()
-  p = Process(target=calcProcess, args=(func,args,q,))
-  p.start()
-  p.join(maxRunTime)
-  if p.is_alive():
-    p.terminate()
+  q = Queue.Queue()
+  t = workerThread(calcProcess, (func, args, q,), q, postProc)
+  t.start()
+  t.join(maxRunTime)
+  if t.isAlive():
+    t.kill()
     if not(postProc):
       return "Took too long"
     else:
       res=[]
       for proc in postProc:
         res.append("Took too long")
-      return res
+    return res
   else:
-    res=q.get()
-    if not(postProc):
-      return res
-    else:
-      res2=[]
-      for proc in postProc:
-        if res=="error":
-          res2.append(res)
-        else:
-          res2.append(proc(res))
-      return res2
+    return q.get()
 
-# Function called by the worker process in calc()
+# Function called by the worker thread in calc()
 def calcProcess(func, args, q):
   try:
-    res = func(*args)
-    q.put(res)
+    return func(*args)
   except Exception, e:
-    q.put("error")
+    return "error"
