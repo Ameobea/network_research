@@ -4,7 +4,6 @@
 import networkx as nx
 import os
 from multiprocessing import Process, Queue
-import pprint
 
 maxRunTime=5
 
