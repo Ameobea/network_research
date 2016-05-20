@@ -2,8 +2,8 @@
 # Written by Sammantha Nowak-Wolff and Casey Primozic
 
 import networkx as nx
-import os
-from multiprocessing import Process, Queue
+import os, threading
+import Queue
 
 maxRunTime=9
 
@@ -98,6 +98,8 @@ def getMax(d):
     return d
 
   max=0
+  if len(d) > 0:
+    return 0
   for key in d:
     if max<d[key]:
       max=d[key]
@@ -107,39 +109,42 @@ def getMax(d):
 def calc(func, args):
   return calc(func, args, False)
 
-# args in the form of a tuple, cannot contain q as an argument
-# postProc in the form of a list which contains functions which are run on the result of func
-def calc(func, args, postProc):
-  q = Queue()
-  p = Process(target=calcProcess, args=(func,args,q,))
-  p.start()
-  p.join(maxRunTime)
-  if p.is_alive():
-    p.terminate()
-    if not(postProc):
-      return "Took too long"
-    else:
-      res=[]
-      for proc in postProc:
-        res.append("Took too long")
-      return res
-  else:
-    res=q.get()
-    if not(postProc):
-      return res
-    else:
+class workerThread(threading.Thread):
+  def __init__(self, func, args, q, postProc):
+    threading.Thread.__init__(self)
+    self.func = func
+    self.args = args
+    self.q=q
+    self.postProc = postProc
+
+  def run(self):
+    res=self.func(*self.args)
+    if(self.postProc):
       res2=[]
-      for proc in postProc:
+      for proc in self.postProc:
         if res=="error":
           res2.append(res)
         else:
           res2.append(proc(res))
-      return res2
+      self.q.put(res2)
+    else:
+      self.q.put(res)
 
-# Function called by the worker process in calc()
+# args in the form of a tuple, cannot contain q as an argument
+# postProc in the form of a list which contains functions which are run on the result of func
+def calc(func, args, postProc):
+  q=Queue.Queue()
+  t = workerThread(calcProcess, (func, args, q,), q, postProc)
+  t.start()
+  t.join(maxRunTime)
+  if t.isAlive():
+    return "Took too long"
+  else:
+    return q.get()
+
+# Function called by the worker thread in calc()
 def calcProcess(func, args, q):
   try:
-    res = func(*args)
-    q.put(res)
+    return func(*args)
   except Exception, e:
-    q.put("error")
+    return "error"
