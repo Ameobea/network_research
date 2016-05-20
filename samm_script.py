@@ -34,6 +34,12 @@ def process(a):
     print(e)
 
   try:
+    radius= nx.radius(a)
+    print("Radius: " + str(radius))
+  except Exception, e:
+    print(e)
+
+  try:
     center= nx.center(a)
     print(str(center))
   except Exception, e:
@@ -45,11 +51,21 @@ def process(a):
   except Exception, e:
     print(e)
 
+  try:
+    connected= nx.is_connected(a)
+    print("Connected: " + str(connected))
+  except Exception, e:
+    print(e)
+    
   print(nx.info(a))
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
   print("Max average neighbor degree: " + str(res[0]))
   print("Average average neighbor degree: " + str(res[1]))
+
+  res=calc(nx.average_clustering, (a,), [getAverage, getMax])
+  print("Max clustering: " + str(res[0]))
+  print("Average clustering: " + str(res[1]))
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
