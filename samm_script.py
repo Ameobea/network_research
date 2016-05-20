@@ -5,7 +5,7 @@ import networkx as nx
 import os
 from multiprocessing import Process, Queue
 
-maxRunTime=5
+maxRunTime=9
 
 def processAll():
   processAll(False)
