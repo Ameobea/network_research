@@ -89,8 +89,11 @@ def getAverage(d):
   for key in d:
     sum += d[key]
 
-  avg = sum/float(len(d))
-  return avg
+  if sum != 0:
+    avg = sum/float(len(d))
+    return avg
+  else:
+    return 0
 
 # Returns the maximum value for a dictionary of numbers
 def getMax(d):
