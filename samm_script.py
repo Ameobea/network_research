@@ -31,43 +31,47 @@ def process(a):
     chordal= nx.is_chordal(a)
     print("Chordal: " + str(chordal))
   except Exception, e:
-    print("Chordal: error")
+    print("Chordal: " + str(e))
 
   try:
     radius= nx.radius(a)
     print("Radius: " + str(radius))
   except Exception, e:
-    print(e)
+    print("Radius: "+str(e))
 
   try:
     center= nx.center(a)
     print("Center: " + str(center))
   except Exception, e:
-    print("Center: error")
+    print("Center: " + str(e))
 
   try:
     transitivity = nx.transitivity(a)
     print("Transitivity: " + str(transitivity))
   except Exception, e:
-    print("Transitivity: error")
+    print("Transitivity: " + str(e))
 
   try:
     connected= nx.is_connected(a)
     print("Connected: " + str(connected))
   except Exception, e:
-    print(e)
+    print("Connected: " + str(e))
     
   print(nx.info(a))
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
+  print("Average average neighbor degree: " + str(res[0]))
+  print("Max average neighbor degree: " + str(res[1]))
 
   res=calc(nx.average_clustering, (a,), False)
-  print("Average clustering: "+str(res))
+  print("Average clustering: " + str(res))
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
+    print("Max triangles on a node: " + str(res[0]))
+    print("Average triangles per node: " + str(res[1]))
   except Exception, e:
-    print(e)
+    print("Triangles: " + str(e))
 
   res=calc(nx.closeness_centrality, (a,), [getAverage, getMax])
   print("Average closeness centrality: " + str(res[0]))
@@ -76,7 +80,7 @@ def process(a):
   try:
     res=calc(nx.eigenvector_centrality, (a,), [getAverage, getMax])
   except Exception, e:
-    print(e)
+    print("Eigenvector centrality: " + str(e))
   print("Average eigenvector centrality: " + str(res[0]))
   print("Max eigenvector centrality: " + str(res[1]))
 
