@@ -3,7 +3,7 @@
 
 import networkx as nx
 import os, threading
-import Queue
+import Queue, sys, trace
 
 maxRunTime=9
 
@@ -31,25 +31,41 @@ def process(a):
     chordal= nx.is_chordal(a)
     print("Chordal: " + str(chordal))
   except Exception, e:
+    print("Chordal: error")
+
+  try:
+    radius= nx.radius(a)
+    print("Radius: " + str(radius))
+  except Exception, e:
     print(e)
 
   try:
     center= nx.center(a)
-    print(str(center))
+    print("Center: " + str(center))
   except Exception, e:
-    print(e)
+    print("Center: error")
 
   try:
     transitivity = nx.transitivity(a)
-    print(str(transitivity))
+    print("Transitivity: " + str(transitivity))
+  except Exception, e:
+    print("Transitivity: error")
+
+  try:
+    connected= nx.is_connected(a)
+    print("Connected: " + str(connected))
   except Exception, e:
     print(e)
-
+    
   print(nx.info(a))
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
   print("Max average neighbor degree: " + str(res[0]))
   print("Average average neighbor degree: " + str(res[1]))
+
+  res=calc(nx.average_clustering, (a,), [getAverage, getMax])
+  print("Max clustering: " + str(res[0]))
+  print("Average clustering: " + str(res[1]))
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
@@ -89,8 +105,11 @@ def getAverage(d):
   for key in d:
     sum += d[key]
 
-  avg = sum/float(len(d))
-  return avg
+  if sum != 0:
+    avg = sum/float(len(d))
+    return avg
+  else:
+    return 0
 
 # Returns the maximum value for a dictionary of numbers
 def getMax(d):
@@ -98,7 +117,7 @@ def getMax(d):
     return d
 
   max=0
-  if len(d) > 0:
+  if len(d) == 0:
     return 0
   for key in d:
     if max<d[key]:
@@ -116,6 +135,32 @@ class workerThread(threading.Thread):
     self.args = args
     self.q=q
     self.postProc = postProc
+    self.killed=False
+
+  def start(self):
+    self.__run_backup = self.run
+    self.run = self.__run
+    threading.Thread.start(self)
+
+  def __run(self):
+    sys.settrace(self.globaltrace)
+    self.__run_backup()
+    self.run = self.__run_backup
+
+  def globaltrace(self, frame, why, arg):
+    if why == 'call':
+      return self.localtrace
+    else:
+      return None
+
+  def localtrace(self, frame, why, arg):
+    if self.killed:
+      if why == 'line':
+        raise SystemExit()
+    return self.localtrace
+
+  def kill(self):
+    self.killed = True
 
   def run(self):
     res=self.func(*self.args)
@@ -133,12 +178,19 @@ class workerThread(threading.Thread):
 # args in the form of a tuple, cannot contain q as an argument
 # postProc in the form of a list which contains functions which are run on the result of func
 def calc(func, args, postProc):
-  q=Queue.Queue()
+  q = Queue.Queue()
   t = workerThread(calcProcess, (func, args, q,), q, postProc)
   t.start()
   t.join(maxRunTime)
   if t.isAlive():
-    return "Took too long"
+    t.kill()
+    if not(postProc):
+      return "Took too long"
+    else:
+      res=[]
+      for proc in postProc:
+        res.append("Took too long")
+    return res
   else:
     return q.get()
 
