@@ -5,7 +5,7 @@ import networkx as nx
 import os, threading
 import Queue, sys, trace
 
-maxRunTime=9
+maxRunTime = 30
 
 def processAll():
   processAll(False)
@@ -60,19 +60,14 @@ def process(a):
   print(nx.info(a))
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
-  print("Max average neighbor degree: " + str(res[0]))
-  print("Average average neighbor degree: " + str(res[1]))
 
-  res=calc(nx.average_clustering, (a,), [getAverage, getMax])
-  print("Max clustering: " + str(res[0]))
-  print("Average clustering: " + str(res[1]))
+  res=calc(nx.average_clustering, (a,), False)
+  print("Average clustering: "+str(res))
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
   except Exception, e:
     print(e)
-  print("Max triangles: " + str(res[0]))
-  print("Average triangles: " + str(res[1]))
 
   res=calc(nx.closeness_centrality, (a,), [getAverage, getMax])
   print("Average closeness centrality: " + str(res[0]))
