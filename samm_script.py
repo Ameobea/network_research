@@ -5,7 +5,7 @@ import networkx as nx
 import os, threading
 import Queue, sys, trace
 
-maxRunTime = 30
+maxRunTime = 300
 
 def processAll():
   processAll(False)
@@ -68,8 +68,6 @@ def process(a):
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
-    print("Max triangles on a node: " + str(res[0]))
-    print("Average triangles per node: " + str(res[1]))
   except Exception, e:
     print("Triangles: " + str(e))
 
