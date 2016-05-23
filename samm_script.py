@@ -68,6 +68,8 @@ def process(a):
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
+    print("Average triangles per node: " + str(res[0]))
+    print("Max triangles on a node: " + str(res[1]))
   except Exception, e:
     print("Triangles: " + str(e))
 
