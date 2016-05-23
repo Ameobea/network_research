@@ -4,8 +4,9 @@
 import networkx as nx
 import os, threading
 import Queue, sys, trace
+import json
 
-maxRunTime = 300
+maxRunTime = 3
 
 def processAll():
   processAll(False)
@@ -16,73 +17,107 @@ def processAll(dir):
     dir="./"
   else:
     dir=os.path.relpath(dir)
+  allResults = []
   for file in os.listdir(dir):
     ext = file.split(".")[-1]
     if ext == "gml" or ext == "net":
       print("\nProcessing " + file + ":")
       g=loadNetwork(dir+"/"+file)
       if(g):
-        process(g)
+        res = process(g)
+        res['filename'] = file
+        allResults.append(res)
+  with open("results.json", "w") as resFile:
+    resFile.write(json.dumps(allResults))
 
 # Applies various network analysis functions to the given network
 # and prints the results.
 def process(a):
+  j = {}
+
   try:
     chordal= nx.is_chordal(a)
     print("Chordal: " + str(chordal))
+    j['chordal'] = chordal
   except Exception, e:
     print("Chordal: " + str(e))
 
   try:
     radius= nx.radius(a)
     print("Radius: " + str(radius))
+    j['radius'] = radius
   except Exception, e:
     print("Radius: "+str(e))
 
   try:
     center= nx.center(a)
     print("Center: " + str(center))
+    j['center'] = center
   except Exception, e:
     print("Center: " + str(e))
 
   try:
     transitivity = nx.transitivity(a)
     print("Transitivity: " + str(transitivity))
+    j['transitivity'] = transitivity
   except Exception, e:
     print("Transitivity: " + str(e))
 
   try:
     connected= nx.is_connected(a)
     print("Connected: " + str(connected))
+    j['connected'] = connected
   except Exception, e:
     print("Connected: " + str(e))
-    
-  print(nx.info(a))
+
+  info = nx.info(a)
+  j['type'] = info.split("Type: ")[1].split("\n")[0].strip()
+  j['nodes'] = int(info.split("nodes: ")[1].split("\n")[0].strip())
+  j['edges'] = int(info.split("edges: ")[1].split("\n")[0].strip())
+
+  spl = info.split("in degree: ")
+  if len(spl) > 1:
+    j['averageInDegree'] = float(spl[1].split("\n")[0].strip())
+    j['averageOutDegree'] = float(info.split("out degree: ")[1].split("\n")[0].strip())
+  else:
+    j['averageDegree'] = float(info.split("degree: ")[1].split("\n")[0].strip())
+  print(info)
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
   print("Average average neighbor degree: " + str(res[0]))
+  j['averageAverageNeighborDegree'] = res[0]
   print("Max average neighbor degree: " + str(res[1]))
+  j['maxAverageNeighborDegree'] = res[1]
 
   res=calc(nx.average_clustering, (a,), False)
   print("Average clustering: " + str(res))
+  j['averageClustering'] = res
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
     print("Average triangles per node: " + str(res[0]))
+    j['averageTriangles'] = res[0]
     print("Max triangles on a node: " + str(res[1]))
+    j['maxTriangles'] = res[1]
   except Exception, e:
     print("Triangles: " + str(e))
 
   res=calc(nx.closeness_centrality, (a,), [getAverage, getMax])
   print("Average closeness centrality: " + str(res[0]))
+  j['averageClosenessCentrality'] = res[0]
   print("Max closeness centrality: " + str(res[1]))
+  j['maxClosenessCentrality'] = res[1]
 
   try:
     res=calc(nx.eigenvector_centrality, (a,), [getAverage, getMax])
+    print("Average eigenvector centrality: " + str(res[0]))
+    j['averageEigenvectorCentrality'] = res[0]
+    print("Max eigenvector centrality: " + str(res[1]))
+    j['maxEigenvectorCentrality'] = res[1]
   except Exception, e:
     print("Eigenvector centrality: " + str(e))
-  print("Average eigenvector centrality: " + str(res[0]))
-  print("Max eigenvector centrality: " + str(res[1]))
+
+  return j
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
 def loadNetwork(f):
