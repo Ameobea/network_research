@@ -2,10 +2,10 @@
 # Written by Sammantha Nowak-Wolff and Casey Primozic
 
 import networkx as nx
-import os
-from multiprocessing import Process, Queue
+import os, threading
+import Queue, sys, trace
 
-maxRunTime=5
+maxRunTime = 30
 
 def processAll():
   processAll(False)
@@ -31,48 +31,47 @@ def process(a):
     chordal= nx.is_chordal(a)
     print("Chordal: " + str(chordal))
   except Exception, e:
-    print(e)
+    print("Chordal: " + str(e))
 
   try:
     radius= nx.radius(a)
     print("Radius: " + str(radius))
   except Exception, e:
-    print(e)
+    print("Radius: "+str(e))
 
   try:
     center= nx.center(a)
-    print(str(center))
+    print("Center: " + str(center))
   except Exception, e:
-    print(e)
+    print("Center: " + str(e))
 
   try:
     transitivity = nx.transitivity(a)
-    print(str(transitivity))
+    print("Transitivity: " + str(transitivity))
   except Exception, e:
-    print(e)
+    print("Transitivity: " + str(e))
 
   try:
     connected= nx.is_connected(a)
     print("Connected: " + str(connected))
   except Exception, e:
-    print(e)
+    print("Connected: " + str(e))
     
   print(nx.info(a))
 
   res=calc(nx.average_neighbor_degree, (a,), [getAverage, getMax])
-  print("Max average neighbor degree: " + str(res[0]))
-  print("Average average neighbor degree: " + str(res[1]))
+  print("Average average neighbor degree: " + str(res[0]))
+  print("Max average neighbor degree: " + str(res[1]))
 
-  res=calc(nx.average_clustering, (a,), [getAverage, getMax])
-  print("Max clustering: " + str(res[0]))
-  print("Average clustering: " + str(res[1]))
+  res=calc(nx.average_clustering, (a,), False)
+  print("Average clustering: " + str(res))
 
   try:
     res=calc(nx.triangles, (a,), [getAverage, getMax])
+    print("Max triangles on a node: " + str(res[0]))
+    print("Average triangles per node: " + str(res[1]))
   except Exception, e:
-    print(e)
-  print("Max triangles: " + str(res[0]))
-  print("Average triangles: " + str(res[1]))
+    print("Triangles: " + str(e))
 
   res=calc(nx.closeness_centrality, (a,), [getAverage, getMax])
   print("Average closeness centrality: " + str(res[0]))
@@ -81,7 +80,7 @@ def process(a):
   try:
     res=calc(nx.eigenvector_centrality, (a,), [getAverage, getMax])
   except Exception, e:
-    print(e)
+    print("Eigenvector centrality: " + str(e))
   print("Average eigenvector centrality: " + str(res[0]))
   print("Max eigenvector centrality: " + str(res[1]))
 
@@ -105,8 +104,11 @@ def getAverage(d):
   for key in d:
     sum += d[key]
 
-  avg = sum/float(len(d))
-  return avg
+  if sum != 0:
+    avg = sum/float(len(d))
+    return avg
+  else:
+    return 0
 
 # Returns the maximum value for a dictionary of numbers
 def getMax(d):
@@ -114,6 +116,8 @@ def getMax(d):
     return d
 
   max=0
+  if len(d) == 0:
+    return 0
   for key in d:
     if max<d[key]:
       max=d[key]
@@ -123,39 +127,75 @@ def getMax(d):
 def calc(func, args):
   return calc(func, args, False)
 
+class workerThread(threading.Thread):
+  def __init__(self, func, args, q, postProc):
+    threading.Thread.__init__(self)
+    self.func = func
+    self.args = args
+    self.q=q
+    self.postProc = postProc
+    self.killed=False
+
+  def start(self):
+    self.__run_backup = self.run
+    self.run = self.__run
+    threading.Thread.start(self)
+
+  def __run(self):
+    sys.settrace(self.globaltrace)
+    self.__run_backup()
+    self.run = self.__run_backup
+
+  def globaltrace(self, frame, why, arg):
+    if why == 'call':
+      return self.localtrace
+    else:
+      return None
+
+  def localtrace(self, frame, why, arg):
+    if self.killed:
+      if why == 'line':
+        raise SystemExit()
+    return self.localtrace
+
+  def kill(self):
+    self.killed = True
+
+  def run(self):
+    res=self.func(*self.args)
+    if(self.postProc):
+      res2=[]
+      for proc in self.postProc:
+        if res=="error":
+          res2.append(res)
+        else:
+          res2.append(proc(res))
+      self.q.put(res2)
+    else:
+      self.q.put(res)
+
 # args in the form of a tuple, cannot contain q as an argument
 # postProc in the form of a list which contains functions which are run on the result of func
 def calc(func, args, postProc):
-  q = Queue()
-  p = Process(target=calcProcess, args=(func,args,q,))
-  p.start()
-  p.join(maxRunTime)
-  if p.is_alive():
-    p.terminate()
+  q = Queue.Queue()
+  t = workerThread(calcProcess, (func, args, q,), q, postProc)
+  t.start()
+  t.join(maxRunTime)
+  if t.isAlive():
+    t.kill()
     if not(postProc):
       return "Took too long"
     else:
       res=[]
       for proc in postProc:
         res.append("Took too long")
-      return res
+    return res
   else:
-    res=q.get()
-    if not(postProc):
-      return res
-    else:
-      res2=[]
-      for proc in postProc:
-        if res=="error":
-          res2.append(res)
-        else:
-          res2.append(proc(res))
-      return res2
+    return q.get()
 
-# Function called by the worker process in calc()
+# Function called by the worker thread in calc()
 def calcProcess(func, args, q):
   try:
-    res = func(*args)
-    q.put(res)
+    return func(*args)
   except Exception, e:
-    q.put("error")
+    return "error"
