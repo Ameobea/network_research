@@ -1,20 +1,18 @@
 # Automated network processing script
-# Written by Sammantha Nowak-Wolff, Casey Primozic, and AnnaLee Knapp
+# Written by Sammantha Nowak-Wolff and Casey Primozic
 
 import networkx as nx
 import os, threading
 import Queue, sys, trace
 import json
-from datetime import datetime
 
-maxRunTime = 300
+maxRunTime = 3
 
 def processAll():
   processAll(False)
 
 # Searches given directory for network files, imports them, and runs process() on each
 def processAll(dir):
-  startTime = datetime.now()
   if not(dir):
     dir="./"
   else:
@@ -31,7 +29,6 @@ def processAll(dir):
         allResults.append(res)
   with open("results.json", "w") as resFile:
     resFile.write(json.dumps(allResults))
-  print("All networks processed in " + str(datetime.now() - startTime))
 
 # Applies various network analysis functions to the given network
 # and prints the results.
