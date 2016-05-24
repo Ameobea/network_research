@@ -117,6 +117,15 @@ def process(a):
   except Exception, e:
     print("Eigenvector centrality: " + str(e))
 
+  try:
+    res=calc(nx.betweeness_centrality, (a,), [getAverage, getMax])
+    j['averageBetweenessCentrality'] = res[0]
+    print("Average betweeness centrality: " + str(res[0]))
+    j['maxBetweenessCentrality'] = res[1]
+    print("Max betweeness centrality: " + str(res[1]))
+  except Exception, e:
+    print("Betweeness Centrality: " + str(e))
+
   return j
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
@@ -160,8 +169,13 @@ def getMax(d):
   return max
 
 def calc(func, args):
-  return calc(func, args, False)
+  calc(func, args, False)
 
+# This is an interruptible thread that is created by the calc() function
+# for all of the networkx computations.  The purpose of this is to allow
+# very long calculations to be interruptible and, in the future, be parallelized.
+# It uses a trace that monitors each line of execution and monitors an internal `killed`
+# state that can be toggled to instantly kill the thread cleanly from within.
 class workerThread(threading.Thread):
   def __init__(self, func, args, q, postProc):
     threading.Thread.__init__(self)
