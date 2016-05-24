@@ -6,7 +6,7 @@ import os, threading
 import Queue, sys, trace
 import json
 
-maxRunTime = 3
+maxRunTime = 5
 
 def processAll():
   processAll(False)
@@ -50,6 +50,13 @@ def process(a):
     print("Radius: "+str(e))
 
   try:
+    diameter= nx.diameter(a)
+    print("Diameter: " + str(diameter))
+    j['diameter'] = diameter
+  except Exception, e:
+    print("Diameter: "+str(e))
+
+  try:
     center= nx.center(a)
     print("Center: " + str(center))
     j['center'] = center
@@ -69,6 +76,34 @@ def process(a):
     j['connected'] = connected
   except Exception, e:
     print("Connected: " + str(e))
+
+  try:
+    graphCliqueNumber= nx.graph_clique_number(a)
+    print("Graph clique number: " + str(graphCliqueNumber))
+    j['graphCliqueNumber'] = graphCliqueNumber
+  except Exception, e:
+    print("Graph clique number: " + str(e))
+
+  try:
+    averageNodeConnectivity= nx.average_node_connectivity(a)
+    print("Average node connectivity: " + str(averageNodeConnectivity))
+    j['averageNodeConnectivity'] = averageNodeConnectivity
+  except Exception, e:
+    print("Average node connectivity: " + str(e))
+    
+  try:
+    numberConnectedComponents= nx.number_connected_components(a)
+    print("Number connected components: " + str(numberConnectedComponents))
+    j['numberConnectedComponents'] = numberConnectedComponents
+  except Exception, e:
+    print("Number connected components: " + str(e))
+
+  try:
+    kCore= nx.k_core(a)
+    print("K core: " + str(kCore))
+    j['kCore'] = kCore
+  except Exception, e:
+    print("K core: " + str(e))
 
   info = nx.info(a)
   j['type'] = info.split("Type: ")[1].split("\n")[0].strip()
@@ -118,14 +153,14 @@ def process(a):
     print("Eigenvector centrality: " + str(e))
 
   try:
-    res=calc(nx.betweeness_centrality, (a,), [getAverage, getMax])
-    j['averageBetweenessCentrality'] = res[0]
-    print("Average betweeness centrality: " + str(res[0]))
-    j['maxBetweenessCentrality'] = res[1]
-    print("Max betweeness centrality: " + str(res[1]))
+    res=calc(nx.betweenness_centrality, (a,), [getAverage, getMax])
+    print("Average Betweenness centrality: " + str(res[0]))
+    j['averageBetweennessCentrality'] = res[0]
+    print("Max betweenness centrality: " + str(res[1]))
+    j['maxBetweennessCentrality'] = res[1]
   except Exception, e:
-    print("Betweeness Centrality: " + str(e))
-
+    print("Betweenness centrality: " + str(e))
+    
   return j
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
