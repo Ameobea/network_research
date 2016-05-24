@@ -129,6 +129,27 @@ def process(a):
   except Exception, e:
     print("Betweeness Centrality: " + str(e))
 
+  try:
+    cliques= nx.graph_clique_number(a)
+    print("Number of cliques: " + str(cliques))
+    j['cliques'] = cliques
+  except Exception, e:
+    print("Clique number: " + str(e))
+
+  try:
+    diameter= nx.diameter(a)
+    print("Diameter: " + str(diameter))
+    j['diameter'] = diameter
+  except Exception, e:
+    print("Diameter: " + str(e))
+
+  try:
+    numberConnectedComponents= nx.number_connected_components(a)
+    print("Number of Connected Components: " + str(numberConnectedComponents))
+    j['numberConnectedComponents'] = numberConnectedComponents
+  except Exception, e:
+    print("Number of Connected Components: " + str(e))
+
   return j
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
