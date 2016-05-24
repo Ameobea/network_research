@@ -1,0 +1,3 @@
+[submodule "paper_parser"]
+	path = paper_parser
+	url = git@github.com:Ameobea/paper_parser.git
