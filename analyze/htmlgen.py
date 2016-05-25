@@ -6,7 +6,7 @@
 #
 # Usage:
 # python htmlgen.py # defaults to "../process/results.json" and "./report.html"
-# python htmlgen.py injson.json outhtml.html
+# python htmlgen.py injson.json outhtml.html # both arguments or none.
 
 import json, sys
 
@@ -19,7 +19,7 @@ def generate(inData):
   with open("resources/cruncher.js") as jsFile:
     html += jsFile.read()
   html += "\n</script>\n</head>\n<body>"
-  for network in inData.iteritems():
+  for network in inData.iteritems(): # for each network
     res = tableHeaderGen(network)
     headerHtml = res[0]
     gMapping = res[1]
@@ -28,8 +28,8 @@ def generate(inData):
       html += "<tr><td><b>" + calc["name"] + "</b></td>\n"
       virtRow = ["<td></td>"] * len(gMapping)
       for a in calc["data"].iteritems(): # for each subcalculation
-        if "error" in calc["data"]:
-          virtRow[0] = "<td><span class='error'>" + str(res["data"]["error"]) + "</span></td>\n"
+        if a[0] == "error":
+          virtRow[0] = "<td><span class='error'>" + str(a[1]) + "</span></td>\n"
         else:
           result = str(a[1])
           if len(result) > 50:

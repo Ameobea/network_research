@@ -11,8 +11,11 @@ table{
   padding-left: 10px;
 }
 
+td{
+  valign: top
+}
+
 #resTable td{
-  valign: top;
   border: 1px solid black;
 }
 
@@ -22,4 +25,5 @@ table{
 
 .minimized{
   background-color: yellow;
+  cursor: pointer;
 }
