@@ -8,7 +8,7 @@ Casey Primozic
 var hiddenText = []
 
 $(document).ready(function(){
-  $(".long").each((index, elem)=>{
+  $(".long").each(function(index, elem){
     hiddenText.push(elem.innerText);
     elem.removeAttribute("class");
     elem.setAttribute("id", `minimized-${hiddenText.length-1}`);
