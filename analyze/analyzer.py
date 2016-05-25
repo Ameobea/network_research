@@ -9,7 +9,7 @@
 # python analyzer.py                  # Uses default results file in ../process/results.json
 # python analyzer.py "../other.json"  # Uses supplied results file
 
-import json, pprint, sys
+import json, sys
 
 nodeDicts = ["degree", "averageNeighborDegree", "trianglesPerNode", "eigenvectorCentrality",
   "closenessCentrality", "betweenessCentrality", "averageDegreeConnectivity"]
@@ -48,18 +48,18 @@ def dictMin(inDict):
   return minNum
 
 # perform some basic operations on dictionary-based results
-def processNodeDict(network):
-  network['average'] = dictAverage(network)
-  network['max'] = dictMax(network)
-  network['min'] = dictMin(network)
-  return network
+def processNodeDict(calc):
+  calc["data"]["average"] = dictAverage(calc["data"]["res"])
+  calc["data"]["max"] = dictMax(calc["data"]["res"])
+  calc["data"]["min"] = dictMin(calc["data"]["res"])
+  return calc
 
 def analyze(inData, filename):
   for network in inData.iteritems():
     for cIndex, calc in enumerate(network[1]):
       if "res" in calc["data"] and not("error" in calc["data"]):
         if calc["name"] in nodeDicts:
-          inData[network[0]][cIndex] = processNodeDict(calc["data"]["res"])
+          inData[network[0]][cIndex] = processNodeDict(calc)
   with open(filename, "w") as outFile:
     outFile.write(json.dumps(inData))
   print("Done analyzing network.")

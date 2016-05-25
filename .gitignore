@@ -65,8 +65,9 @@ target/
 networks
 networks2
 
-#output json
-results.json
+#output
+*.json
+*.html
 
 #temp network files
 *.pk1
