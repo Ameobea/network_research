@@ -7,7 +7,7 @@ Casey Primozic
 */
 var hiddenText = []
 
-$(document).ready(()=>{
+$(document).ready(function(){
   $(".long").each((index, elem)=>{
     hiddenText.push(elem.innerText);
     elem.removeAttribute("class");

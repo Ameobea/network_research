@@ -8,7 +8,7 @@ import json, uuid, getopt, subprocess, time
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 3000
+  maxRunTime = 10
   threads = 3
 
   calcQ = []
