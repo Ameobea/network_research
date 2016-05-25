@@ -63,6 +63,7 @@ target/
 
 #Network files for processing
 networks
+networks2
 
 #output json
 results.json
