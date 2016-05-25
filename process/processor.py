@@ -203,7 +203,7 @@ def processResults(resultFiles):
         j[res["networkFilename"]].append(resObject)
       else:
         j[res["networkFilename"]] = [resObject]
-      os.remove(resFileName)
+      #os.remove(resFileName)
   with open("results.json", "w") as outFile:
     outFile.write(json.dumps(j))
 
@@ -212,7 +212,7 @@ def processResults(resultFiles):
 if sys.argv[1:] != []:
   with open(sys.argv[2], "r") as argFile:
     args = pickle.load(argFile)
-    os.remove(sys.argv[2])
+    #os.remove(sys.argv[2])
   res = doCalc(eval(sys.argv[1]), args, int(sys.argv[4]))
   resObject = {"networkFilename": sys.argv[5], "name": sys.argv[3], "data": res, "endTime": datetime.now()}
   resFileName = "temp/" + str(uuid.uuid4()) + ".pk1"
