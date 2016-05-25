@@ -8,8 +8,8 @@ import json, uuid, getopt, subprocess, time
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 10
-  threads = 4
+  maxRunTime = 3000
+  threads = 3
 
   calcQ = []
   workerQ = []
@@ -195,8 +195,7 @@ def processResults(resultFiles):
       res = pickle.load(resFile)
       for calc in calcQ:
         if calc["name"] == res["name"]:
-          startTime = calc["startTime"]
-          diff = res["endTime"] - startTime
+          diff = res["endTime"] - calc["startTime"]
           break
       resObject = {"name": res["name"], "data": res["data"], "runTime": diff.seconds + diff.microseconds/1000000.0}
       if res["networkFilename"] in j:
