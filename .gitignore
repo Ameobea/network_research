@@ -66,3 +66,6 @@ networks
 
 #output json
 results.json
+
+#temp network files
+*.pk1
