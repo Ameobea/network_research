@@ -8,7 +8,7 @@ import json, uuid, getopt, subprocess, time
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 1
+  maxRunTime = 10
   threads = 4
 
   calcQ = []
@@ -41,19 +41,30 @@ def processAll(dir):
 
 # Applies various network analysis functions to the given network
 # and prints the results.
-def process(a, networkFileName):
-  queueCalc("nx.is_chordal", (a,), "isChordal", networkFileName)
-  queueCalc("nx.radius", (a,), "radius", networkFileName)
-  queueCalc("nx.center", (a,), "center", networkFileName)
-  queueCalc("nx.transitivity", (a,), "transitivity", networkFileName)
-  queueCalc("nx.is_connected", (a,), "isConnected", networkFileName)
-  queueCalc("nx.info", (a,), "info", networkFileName)
-  queueCalc("nx.average_neighbor_degree", (a,), "averageNeighborDegree", networkFileName)
-  queueCalc("nx.average_clustering", (a,), "averageClustering", networkFileName)
-  queueCalc("nx.triangles", (a,), "trianglesPerNode", networkFileName)
-  queueCalc("nx.closeness_centrality", (a,), "closenessCentrality", networkFileName)
-  queueCalc("nx.eigenvector_centrality", (a,), "eigenvectorCentrality", networkFileName)
-  #queueCalc("nx.betweeness_centrality", (a,), "betweenessCentrality", filename)
+def process(a, networkFilename):
+  queueCalc("nx.degree", (a,), "degree", networkFilename)
+  queueCalc("nx.density", (a,), "density", networkFilename)
+  queueCalc("nx.is_directed", (a,), "isDirected", networkFilename)
+  queueCalc("nx.number_of_nodes", (a,), "nodeCount", networkFilename)
+  queueCalc("nx.number_of_edges", (a,), "edgeCount", networkFilename)
+  queueCalc("nx.is_chordal", (a,), "isChordal", networkFilename)
+  queueCalc("nx.radius", (a,), "radius", networkFilename)
+  queueCalc("nx.center", (a,), "center", networkFilename)
+  queueCalc("nx.transitivity", (a,), "transitivity", networkFilename)
+  queueCalc("nx.is_connected", (a,), "isConnected", networkFilename)
+  queueCalc("nx.average_neighbor_degree", (a,), "averageNeighborDegree", networkFilename)
+  queueCalc("nx.average_clustering", (a,), "averageClustering", networkFilename)
+  queueCalc("nx.triangles", (a,), "trianglesPerNode", networkFilename)
+  queueCalc("nx.closeness_centrality", (a,), "closenessCentrality", networkFilename)
+  queueCalc("nx.eigenvector_centrality", (a,), "eigenvectorCentrality", networkFilename)
+  queueCalc("nx.betweenness_centrality", (a,), "betweennessCentrality", networkFilename)
+  queueCalc("nx.graph_clique_number", (a,), "cliqueNumber", networkFilename)
+  queueCalc("nx.average_node_connectivity", (a,), "averageNodeConnectivity", networkFilename)
+  queueCalc("nx.average_degree_connectivity", (a,), "averageDegreeConnectivity", networkFilename)
+  queueCalc("nx.number_connected_components", (a,), "numberConnectedComponents", networkFilename)
+  queueCalc("nx.degree_assortativity_coefficient", (a,), "degreeAssortativityCoefficient", networkFilename)
+  #queueCalc("nx.k_core", (a,), "kCore", networkFilename) #returns a network, so is disabled
+  queueCalc("nx.is_eulerian", (a,), "isEulerian", networkFilename)
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
 def loadNetwork(f):
@@ -90,14 +101,14 @@ class workerThread(threading.Thread):
     self.run = self.__run_backup
 
   def globaltrace(self, frame, why, arg):
-    if why == 'call':
+    if why == "call":
       return self.localtrace
     else:
       return None
 
   def localtrace(self, frame, why, arg):
     if self.killed:
-      if why == 'line':
+      if why == "line":
         raise SystemExit()
     return self.localtrace
 
@@ -113,26 +124,28 @@ class workerThread(threading.Thread):
     self.q.put(res)
 
 # Queues a calculation
-def queueCalc(func, args, name, networkFileName):
-  calcQ.append({"name": name, "func": func, "args": args, "started": False, "networkFileName": networkFileName})
+def queueCalc(func, args, name, networkFilename):
+  calcQ.append({"name": name, "func": func, "args": args, "started": False, "networkFilename": networkFilename})
 
 # Starts a new calculation on an idle worker
 def calcNext():
   for taskIndex, task in enumerate(calcQ):
-    if not(calcQ[taskIndex]['started']): # Worker is idle
-      calcQ[taskIndex]['started'] = True
+    if not(calcQ[taskIndex]["started"]): # Finds first unstarted task
+      calcQ[taskIndex]["started"] = True
+      calcQ[taskIndex]["startTime"] = datetime.now()
       for workerIndex, worker in enumerate(workerQ):
         if not(worker):
           # Start calculation on newly avaliable worker on a new thread
-          workerQ[workerIndex] = calcOne(task['func'], task['args'], task['name'], task['networkFileName'])
-          print("Starting calculation " + task['name'])
+          workerQ[workerIndex] = calcOne(task["func"], task["args"], task["name"], task["networkFilename"])
+          print("Starting calculation " + task["name"])
           break
       break
 
-def calcOne(func, args, calcName, networkFileName):
+# Initiate a worker process
+def calcOne(func, args, calcName, networkFilename):
   tempFileName = "temp/" + str(uuid.uuid4()) + ".pk1"
   pickle.dump(args, open(tempFileName, "w")) # dump args to temp file
-  scriptArgs = ["python", "processor.py", func, tempFileName, calcName, str(maxRunTime), networkFileName]
+  scriptArgs = ["python", "processor.py", func, tempFileName, calcName, str(maxRunTime), networkFilename]
 
   try:
     return subprocess.Popen(scriptArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -180,11 +193,16 @@ def processResults(resultFiles):
   for resFileName in resultFiles:
     with open(resFileName, "r") as resFile:
       res = pickle.load(resFile)
-      resObject = {"name": res['name'], "data": res['data']}
-      if res["networkFileName"] in j:
-        j[res["networkFileName"]].append(resObject)
+      for calc in calcQ:
+        if calc["name"] == res["name"]:
+          startTime = calc["startTime"]
+          diff = res["endTime"] - startTime
+          break
+      resObject = {"name": res["name"], "data": res["data"], "runTime": diff.seconds + diff.microseconds/1000000.0}
+      if res["networkFilename"] in j:
+        j[res["networkFilename"]].append(resObject)
       else:
-        j[res["networkFileName"]] = [resObject]
+        j[res["networkFilename"]] = [resObject]
       os.remove(resFileName)
   with open("results.json", "w") as outFile:
     outFile.write(json.dumps(j))
@@ -196,7 +214,7 @@ if sys.argv[1:] != []:
     args = pickle.load(argFile)
     os.remove(sys.argv[2])
   res = doCalc(eval(sys.argv[1]), args, int(sys.argv[4]))
-  resObject = {"networkFileName": sys.argv[5], "name": sys.argv[3], "data": res}
+  resObject = {"networkFilename": sys.argv[5], "name": sys.argv[3], "data": res, "endTime": datetime.now()}
   resFileName = "temp/" + str(uuid.uuid4()) + ".pk1"
   pickle.dump(resObject, open(resFileName, "w")) # store results in temporary file
   print(resFileName)
