@@ -5,15 +5,15 @@
 #
 # Casey Primozic
 #
-# Usage: python correlate.py -i res.json -o out.json
-# python correlate.py # defaults to -i ../process/results.json ./comparison_results.json
+# Usage: python compare.py -i res.json -o out.json # input is the results file from `process`/`analyze`
+# python compare.py # defaults to -i ../process/results.json ./comparison_results.json
 
 import json, getopt, sys
 
 try:
   opts, args = getopt.getopt(sys.argv, "i:o:", ["in=", "out="])
 except getopt.GetoptError:
-  print("Usage: python correlate.py -i res.json -o out.json")
+  print("Usage: python compare.py -i res.json -o out.json")
   sys.exit(2)
 
 inFileName = "../process/results.json"
@@ -21,7 +21,7 @@ outfileName = "./comparison_results.json"
 
 for opt, arg in opts:
   if opt == "-h":
-    print("Usage: python correlate.py -i res.json -o out.json")
+    print("Usage: python compare.py -i res.json -o out.json")
   elif opt == "-i":
     inFileName = arg
   elif opt == "-o":
@@ -46,7 +46,9 @@ def compareCalculation(baseCalc, compCalc):
   res = {}
   for elem in baseCalc["data"].iteritems():
     if elem[0] in compCalc["data"]:
-      res[elem[0]] = compareValue(baseCalc["data"][elem[0]], compCalc["data"][elem[0]])
+      comparison = compareValue(baseCalc["data"][elem[0]], compCalc["data"][elem[0]])
+      if not(comparison is None):
+        res[elem[0]] = comparison
   return res
 
 # Compares two values of varying types and returns results
@@ -56,7 +58,7 @@ def compareValue(baseValue, compValue):
   elif isinstance(baseValue, (int, long, float)): # Numeric
     return compValue - baseValue
   else: # Assume it is a dictionary containing per-node numbers
-    pass # Do nothing; should be handled in `analyzer.py` postprocessor
+    return None # Do nothing; should be handled in `analyzer.py` postprocessor
 
 # mainResults["dolphins"] =
 #   {"pgp": [attributeDifferences], "othernetwork": [attributeDifferences]}
