@@ -8,7 +8,7 @@ import json, uuid, getopt, subprocess, time
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 3000
+  maxRunTime = 30
   threads = 3
 
   calcQ = []
@@ -41,6 +41,9 @@ def processAll(dir):
 
 # Applies various network analysis functions to the given network
 # and prints the results.
+# ========================================================
+# DO NOT USE THE CHARACTERS _ or - in calculation names
+# ========================================================
 def process(a, networkFilename):
   queueCalc("nx.degree", (a,), "degree", networkFilename)
   queueCalc("nx.density", (a,), "density", networkFilename)
