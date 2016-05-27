@@ -6,7 +6,7 @@
 # Casey Primozic
 #
 # Usage: python plotCorrelations.py -i res.json -o ./out_dir # input is the results file from `correlate.py`
-# python plotCorrelations.py # defaults to -i ./correlation_pairs.json -o ./correlationPlots
+# python plotCorrelations.py # defaults to -i ./correlation_pairs.json -o ../correlationPlots
 
 import json, getopt, sys, os
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ except getopt.GetoptError:
   sys.exit(2)
 
 inFileName = "./correlation_pairs.json"
-outDirectory = "./correlation_plots"
+outDirectory = "../correlation_plots"
 
 for opt, arg in opts:
   if opt == "-h":
@@ -34,7 +34,18 @@ if not(os.path.isdir(outDirectory)):
 inFile = open(inFileName, "r")
 inData = json.load(inFile)
 
+bases = []
+comps = []
+
 for pairName, pairData in inData.iteritems():
+  bases.append(pairName.split("_")[0])
+  comps.append(pairName.split("_")[1])
   plt.scatter(pairData[0], pairData[1], s=5)
   plt.savefig(outDirectory + "/" + pairName + ".png")
   plt.clf()
+
+with open(outDirectory + "/" + "names.js", "w") as nameFile:
+  content = "var names = JSON.parse('" + json.dumps([bases, comps]) + "');"
+  nameFile.write(content)
+
+print("All correlation pairs plotted and output to " + outDirectory)

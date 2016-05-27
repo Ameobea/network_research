@@ -68,6 +68,7 @@ networks2
 #output
 *.json
 *.html
+correlation_plots/*
 
 #temp network files
 *.pk1

@@ -27,9 +27,9 @@ def processAll(dir):
 
   for file in os.listdir(dir):
     ext = file.split(".")[-1]
-    if ext == "gml" or ext == "net":
-      g=loadNetwork(dir+"/"+file)
-      if(g):
+    if ext == "gml" or ext == "net" or ext == "txt":
+      g=loadNetwork(dir+"/"+file, ext)
+      if not(type(g) == bool):
         process(g, file)
 
   for worker in workerQ:
@@ -70,15 +70,25 @@ def process(a, networkFilename):
   queueCalc("nx.is_eulerian", (a,), "isEulerian", networkFilename)
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
-def loadNetwork(f):
-  try:
-    return nx.read_gml(f)
-  except Exception, e:
+def loadNetwork(f, ext):
+  if ext == "gml":
+    try:
+      return nx.read_gml(f)
+    except Exception, e:
+      print("Couldn't load " + f + " as gml.")
+      return False
+  elif ext == "net":
     try:
       return nx.read_pajek(f)
     except Exception, e:
-      print("Network cannot be parsed.")
+      print("Couldn't load " + f + " as pajek.")
       return False
+  else: # assume it's just an adjacency list
+    try:
+      return nx.read_adjlist(f)
+    except Exception, e:
+      print(e)
+      print("Couldn't load " + f + " as adjacency list.")
 
 # This is an interruptible thread that is created by the calcOne() function
 # for all of the networkx computations.  The purpose of this is to allow
