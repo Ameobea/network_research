@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>Correlation Plot Viewer</title>
+<!--Created by Casey Primozic-->
+<script src="https://ameobea.me/sources/jquery-2.1.0.min.js"></script>
+<script src="./correlation_plots/names.js"></script>
+<script type="text/javascript">
+var names;
+
+$(document).ready(function(){
+  var uniqueNames = [[],[]];
+  $.each(names[0], function(i, el){
+      if($.inArray(el, uniqueNames[0]) === -1) uniqueNames[0].push(el);
+  });
+  $.each(names[1], function(i, el){
+      if($.inArray(el, uniqueNames[1]) === -1) uniqueNames[1].push(el);
+  });
+  uniqueNames[0].sort()
+  uniqueNames[1].sort()
+  uniqueNames[0].forEach(function(baseName){
+    $("#base").append($("<option></option>").attr("value",baseName).text(baseName)); 
+  });
+  uniqueNames[1].forEach(function(compName){
+    $("#comp").append($("<option></option>").attr("value",compName).text(compName)); 
+  });
+  $("#show").click(function(){
+    $("#viewport").html("<img id='plot' src='./correlation_plots/" + $("#base").val() + "_" + $("#comp").val() + ".png'></img>");
+    setTimeout(function(){
+      if($("#plot").get()[0].naturalWidth == 0){ //is reverse
+        $("#viewport").html("<img id='plot' src='./correlation_plots/" + $("#comp").val() + "_" + $("#base").val() + ".png'></img>");
+        // if($("#plot").get()[0].naturalWidth == 0){ //doesn't exist
+        //   $("#viewport").html("<p>That correlation doesn't exist!</p>")
+        // }
+      }
+    }, 100)
+  });
+});
+</script>
+</head>
+<body>
+<table>
+<tr>
+<td><select id="base"></select></td>
+<td><select id="comp"></select></td>
+<td><input type="button" value="Show" id="show"></td></tr>
+</table>
+<div id="viewport"></div>
+</body>
+</html>
