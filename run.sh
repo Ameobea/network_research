@@ -1,5 +1,6 @@
 #!/bin/bash
 # Executes the processor, analyzer, and generates a HTML report
+# Written by Casey Primozic
 cd process
 python processAll.py
 rm temp/*
