@@ -41,6 +41,8 @@ for pairName, pairData in inData.iteritems():
   bases.append(pairName.split("_")[0])
   comps.append(pairName.split("_")[1])
   plt.scatter(pairData[0], pairData[1], s=5)
+  plt.xlabel(pairName.split("_")[0])
+  plt.ylabel(pairName.split("_")[1])
   plt.savefig(outDirectory + "/" + pairName + ".png")
   plt.clf()
 

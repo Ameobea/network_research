@@ -8,7 +8,7 @@ import json, uuid, getopt, subprocess, time
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 30
+  maxRunTime = 750
   threads = 3
 
   calcQ = []
@@ -68,8 +68,13 @@ def process(argFileName, networkName):
   queueCalc("nx.average_degree_connectivity", argFileName, "averageDegreeConnectivity", networkName)
   queueCalc("nx.number_connected_components", argFileName, "numberConnectedComponents", networkName)
   queueCalc("nx.degree_assortativity_coefficient", argFileName, "degreeAssortativityCoefficient", networkName)
-  #queueCalc("nx.k_core", argFileName, "kCore", networkName) #returns a network, so is disabled
   queueCalc("nx.is_eulerian", argFileName, "isEulerian", networkName)
+  queueCalc("nx.triadic_census", argFileName, "triadicCensus", networkName)
+  queueCalc("nx.dispersion", argFileName, "dispersion", networkName)
+  queueCalc("nx.bipartite.is_bipartite", argFileName, "isBipartite", networkName)
+  queueCalc("nx.eccentricity", argFileName, "eccentricity", networkName)
+  queueCalc("nx.rich_club_coefficient", argFileName, "richClubCoefficient", networkName)
+  queueCalc("nx.flow_heirarchy", argFileName, "flowHeirarchy", networkName)
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
 def loadNetwork(f, ext):
