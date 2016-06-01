@@ -9,6 +9,7 @@
 # python correlate.py # defaults to -i ../process/results.json -o ./correlation_pairs.json
 
 import json, getopt, sys
+import numpy, pprint
 
 try:
   opts, args = getopt.getopt(sys.argv, "i:o:", ["in=", "out="])
@@ -54,6 +55,10 @@ for network in inData.iteritems():
       newBaseValues = [pairValue[0]]
       newCompValues = [pairValue[1]]
     allPairs[pairName] = (newBaseValues, newCompValues,)
+
+for pairName, pairValue in allPairs.iteritems():
+  correlation = numpy.corrcoef(pairValue).tolist()
+  allPairs[pairName] = allPairs[pairName] + (correlation,)
 
 
 with open(outfileName, "w") as outFile:
