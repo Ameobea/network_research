@@ -1,3 +1,6 @@
 [submodule "paper_parser"]
 	path = paper_parser
 	url = git@github.com:Ameobea/paper_parser.git
+[submodule "network_database"]
+	path = network_database
+	url = git@github.com:Ameobea/network_database.git
