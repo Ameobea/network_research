@@ -5,6 +5,7 @@ import networkx as nx
 import os, threading
 import Queue, sys, trace, os, pickle
 import json, uuid, getopt, subprocess, time
+import hashlib
 from datetime import datetime
 
 if sys.argv[1:] == []:
@@ -25,14 +26,20 @@ def processAll(dir):
   else:
     dir=os.path.relpath(dir)
 
-  for file in os.listdir(dir):
-    ext = file.split(".")[-1]
+  for fileName in os.listdir(dir):
+    ext = fileName.split(".")[-1]
     if ext == "gml" or ext == "net" or ext == "txt":
-      g=loadNetwork(dir+"/"+file, ext)
+      g=loadNetwork(dir+"/"+fileName, ext)
       if not(type(g) == bool):
         tempFileName = "temp/" + str(uuid.uuid4()) + ".pk1"
         pickle.dump((g,), open(tempFileName, "w")) # dump args to temp file
-        process(tempFileName, file)
+        with open(dir + "/" + fileName, 'rb') as afile:
+          hasher = hashlib.sha1()
+          buf = afile.read(65536)
+          while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(65536)
+        process(tempFileName, fileName, hasher.hexdigest())
 
   for worker in workerQ:
     calcNext()
@@ -46,35 +53,35 @@ def processAll(dir):
 # ========================================================
 # DO NOT USE THE CHARACTERS _ or - in calculation names
 # ========================================================
-def process(argFileName, networkName):
-  queueCalc("nx.degree", argFileName, "degree", networkName)
-  queueCalc("nx.density", argFileName, "density", networkName)
-  queueCalc("nx.is_directed", argFileName, "isDirected", networkName)
-  queueCalc("nx.number_of_nodes", argFileName, "nodeCount", networkName)
-  queueCalc("nx.number_of_edges", argFileName, "edgeCount", networkName)
-  queueCalc("nx.is_chordal", argFileName, "isChordal", networkName)
-  queueCalc("nx.radius", argFileName, "radius", networkName)
-  queueCalc("nx.center", argFileName, "center", networkName)
-  queueCalc("nx.transitivity", argFileName, "transitivity", networkName)
-  queueCalc("nx.is_connected", argFileName, "isConnected", networkName)
-  queueCalc("nx.average_neighbor_degree", argFileName, "averageNeighborDegree", networkName)
-  queueCalc("nx.average_clustering", argFileName, "averageClustering", networkName)
-  queueCalc("nx.triangles", argFileName, "trianglesPerNode", networkName)
-  queueCalc("nx.closeness_centrality", argFileName, "closenessCentrality", networkName)
-  queueCalc("nx.eigenvector_centrality", argFileName, "eigenvectorCentrality", networkName)
-  queueCalc("nx.betweenness_centrality", argFileName, "betweennessCentrality", networkName)
-  queueCalc("nx.graph_clique_number", argFileName, "cliqueNumber", networkName)
-  queueCalc("nx.average_node_connectivity", argFileName, "averageNodeConnectivity", networkName)
-  queueCalc("nx.average_degree_connectivity", argFileName, "averageDegreeConnectivity", networkName)
-  queueCalc("nx.number_connected_components", argFileName, "numberConnectedComponents", networkName)
-  queueCalc("nx.degree_assortativity_coefficient", argFileName, "degreeAssortativityCoefficient", networkName)
-  queueCalc("nx.is_eulerian", argFileName, "isEulerian", networkName)
-  queueCalc("nx.triadic_census", argFileName, "triadicCensus", networkName)
-  queueCalc("nx.dispersion", argFileName, "dispersion", networkName)
-  queueCalc("nx.bipartite.is_bipartite", argFileName, "isBipartite", networkName)
-  queueCalc("nx.eccentricity", argFileName, "eccentricity", networkName)
-  queueCalc("nx.rich_club_coefficient", argFileName, "richClubCoefficient", networkName)
-  queueCalc("nx.flow_heirarchy", argFileName, "flowHeirarchy", networkName)
+def process(argFileName, networkName, networkHash):
+  queueCalc("nx.degree", argFileName, "degree", networkName, networkHash)
+  queueCalc("nx.density", argFileName, "density", networkName, networkHash)
+  queueCalc("nx.is_directed", argFileName, "isDirected", networkName, networkHash)
+  queueCalc("nx.number_of_nodes", argFileName, "nodeCount", networkName, networkHash)
+  queueCalc("nx.number_of_edges", argFileName, "edgeCount", networkName, networkHash)
+  queueCalc("nx.is_chordal", argFileName, "isChordal", networkName, networkHash)
+  queueCalc("nx.radius", argFileName, "radius", networkName, networkHash)
+  queueCalc("nx.center", argFileName, "center", networkName, networkHash)
+  queueCalc("nx.transitivity", argFileName, "transitivity", networkName, networkHash)
+  queueCalc("nx.is_connected", argFileName, "isConnected", networkName, networkHash)
+  queueCalc("nx.average_neighbor_degree", argFileName, "averageNeighborDegree", networkName, networkHash)
+  queueCalc("nx.average_clustering", argFileName, "averageClustering", networkName, networkHash)
+  queueCalc("nx.triangles", argFileName, "trianglesPerNode", networkName, networkHash)
+  queueCalc("nx.closeness_centrality", argFileName, "closenessCentrality", networkName, networkHash)
+  queueCalc("nx.eigenvector_centrality", argFileName, "eigenvectorCentrality", networkName, networkHash)
+  queueCalc("nx.betweenness_centrality", argFileName, "betweennessCentrality", networkName, networkHash)
+  queueCalc("nx.graph_clique_number", argFileName, "cliqueNumber", networkName, networkHash)
+  queueCalc("nx.average_node_connectivity", argFileName, "averageNodeConnectivity", networkName, networkHash)
+  queueCalc("nx.average_degree_connectivity", argFileName, "averageDegreeConnectivity", networkName, networkHash)
+  queueCalc("nx.number_connected_components", argFileName, "numberConnectedComponents", networkName, networkHash)
+  queueCalc("nx.degree_assortativity_coefficient", argFileName, "degreeAssortativityCoefficient", networkName, networkHash)
+  queueCalc("nx.is_eulerian", argFileName, "isEulerian", networkName, networkHash)
+  queueCalc("nx.triadic_census", argFileName, "triadicCensus", networkName, networkHash)
+  queueCalc("nx.dispersion", argFileName, "dispersion", networkName, networkHash)
+  queueCalc("nx.bipartite.is_bipartite", argFileName, "isBipartite", networkName, networkHash)
+  queueCalc("nx.eccentricity", argFileName, "eccentricity", networkName, networkHash)
+  queueCalc("nx.rich_club_coefficient", argFileName, "richClubCoefficient", networkName, networkHash)
+  queueCalc("nx.flow_hierarchy", argFileName, "flowHierarchy", networkName, networkHash)
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
 def loadNetwork(f, ext):
@@ -144,8 +151,8 @@ class workerThread(threading.Thread):
     self.q.put(res)
 
 # Queues a calculation
-def queueCalc(func, argFileName, name, networkName):
-  calcQ.append({"name": name, "func": func, "argFileName": argFileName, "started": False, "networkName": networkName})
+def queueCalc(func, argFileName, name, networkName, networkHash):
+  calcQ.append({"name": name, "func": func, "argFileName": argFileName, "hash": networkHash, "started": False, "networkName": networkName})
 
 # Starts a new calculation on an idle worker
 def calcNext():
@@ -156,17 +163,17 @@ def calcNext():
       for workerIndex, worker in enumerate(workerQ):
         if not(worker):
           # Start calculation on newly avaliable worker on a new thread
-          workerQ[workerIndex] = calcOne(task["func"], task["argFileName"], task["name"], task["networkName"])
+          workerQ[workerIndex] = calcOne(task["func"], task["argFileName"], task["name"], task["networkName"], task["hash"])
           print("Starting calculation " + task["name"])
           break
       break
 
 # Initiate a worker process
-def calcOne(func, argFileName, calcName, networkName):
-  scriptArgs = ["python", "processor.py", func, argFileName, calcName, str(maxRunTime), networkName]
+def calcOne(func, argFileName, calcName, networkName, networkHash):
+  scriptArgs = ["python", "processor.py", func, argFileName, calcName, str(maxRunTime), networkName, networkHash]
 
   try:
-    return subprocess.Popen(scriptArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return subprocess.Popen(scriptArgs, stdout=subprocess.PIPE)
   except subprocess.CalledProcessError as e:
     print("Error in worker process: " + e.output)
 
@@ -194,7 +201,8 @@ def startWorkerManager(startTime):
         empty = False
         status = worker.poll()
         if status is not None: # Finished
-          resultFiles.append(worker.communicate()[0].strip()) # get the result file from worker and save it
+          communication = worker.communicate()
+          resultFiles.append(communication[0].strip()) # get the result file from worker and save it
           workerQ[i] = False # set worker to idle state
           calcNext() # start next calculation
         else:
@@ -215,12 +223,11 @@ def processResults(resultFiles):
         if calc["name"] == res["name"]:
           diff = res["endTime"] - calc["startTime"]
           break
-      resObject = {"name": res["name"], "data": res["data"], "runTime": diff.seconds + diff.microseconds/1000000.0}
+      resObject = {"name": res["name"], "data": res["data"], "runTime": diff.seconds + diff.microseconds/1000000.0, "hash": res["hash"]}
       if res["networkName"] in j:
         j[res["networkName"]].append(resObject)
       else:
         j[res["networkName"]] = [resObject]
-      #os.remove(resFileName)
   with open("results.json", "w") as outFile:
     outFile.write(json.dumps(j))
 
@@ -229,9 +236,8 @@ def processResults(resultFiles):
 if sys.argv[1:] != []:
   with open(sys.argv[2], "r") as argFile:
     args = pickle.load(argFile)
-    #os.remove(sys.argv[2])
   res = doCalc(eval(sys.argv[1]), args, int(sys.argv[4]))
-  resObject = {"networkName": sys.argv[5], "name": sys.argv[3], "data": res, "endTime": datetime.now()}
+  resObject = {"networkName": sys.argv[5], "name": sys.argv[3], "data": res, "endTime": datetime.now(), "hash": sys.argv[6]}
   resFileName = "temp/" + str(uuid.uuid4()) + ".pk1"
   pickle.dump(resObject, open(resFileName, "w")) # store results in temporary file
   print(resFileName)
