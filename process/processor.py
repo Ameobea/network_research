@@ -9,7 +9,7 @@ import hashlib
 from datetime import datetime
 
 if sys.argv[1:] == []:
-  maxRunTime = 1275
+  maxRunTime = 30
   threads = 3
 
   calcQ = []
