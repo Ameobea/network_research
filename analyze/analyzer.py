@@ -62,7 +62,7 @@ def analyze(inData, filename):
           inData[network[0]][cIndex] = processNodeDict(calc)
   with open(filename, "w") as outFile:
     outFile.write(json.dumps(inData))
-  print("Done analyzing network.")
+  print("Done analyzing networks.")
 
 def loadAndProcess():
   if sys.argv[1:] != []:
