@@ -1,5 +1,6 @@
 # Automated network processing script
 # Written by Sammantha Nowak-Wolff, Casey Primozic, and AnnaLee Knapp
+# Modified by Charles Morris
 
 import networkx as nx
 import os, threading
@@ -25,6 +26,14 @@ def processAll(dir):
     dir="./"
   else:
     dir=os.path.relpath(dir)
+
+# Searches for mtx files and converts them to txt - CM
+  for fileName in os.listdir(dir):
+    ext = fileName.split(".")[-1]	
+    if ext == "mtx":
+      lines = open(dir+"/"+fileName).readlines()
+      grph = fileName.split(".")[0]
+      open(dir+"/"+grph+'.txt', 'w').writelines(lines[2:])
 
   for fileName in os.listdir(dir):
     ext = fileName.split(".")[-1]
