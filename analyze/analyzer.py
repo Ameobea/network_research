@@ -5,6 +5,8 @@
 #
 # Casey Primozic with code from Sammantha Nowak-Wolff
 #
+# Modified by Charles Morris
+#
 # Usage:
 # python analyzer.py                  # Uses default results file in ../process/results.json
 # python analyzer.py "../other.json"  # Uses supplied results file
@@ -12,7 +14,7 @@
 import json, sys
 
 nodeDicts = ["degree", "averageNeighborDegree", "trianglesPerNode", "eigenvectorCentrality",
-  "closenessCentrality", "betweenessCentrality", "averageDegreeConnectivity"]
+  "closenessCentrality", "betweenessCentrality", "averageDegreeConnectivity", "eccentricity", "richClubCoefficient", "betweennessCentrality"]
 special = [
   "center", # returns list of nodes
   "degreeAssortativityCoefficient" # requires numpy to be installed
