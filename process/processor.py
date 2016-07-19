@@ -11,7 +11,7 @@ from datetime import datetime
 
 if sys.argv[1:] == []:
   maxRunTime = 30
-  threads = 1
+  threads = 3
 
   calcQ = []
   workerQ = []
@@ -212,15 +212,12 @@ def doCalc(func, args, maxTime):
   q = Queue.Queue()
   t = workerThread(func, args, q)
   t.start()
-  t.join()
-  return q.get()
-
-  #t.join(maxTime)
-  #if t.isAlive():
-  #  t.kill()
-  #  return {"error": "Timed out"}
-  #else:
-  #  return q.get()
+  t.join(maxTime)
+  if t.isAlive():
+    t.kill()
+    return {"error": "Timed out"}
+  else:
+    return q.get()
 
 # Continuously monitor for workers to be done and queue up new
 # calculations as needed.
