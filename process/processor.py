@@ -71,7 +71,7 @@ def process(argFileName, networkName, networkHash):
   queueCalc("nx.is_chordal", "Chordal", argFileName, "isChordal", networkName, networkHash)
   queueCalc("nx.radius", "Radius", argFileName, "radius", networkName, networkHash)
   queueCalc("nx.center", "Center", argFileName, "center", networkName, networkHash)
-  queueCalc("nx.transitivity", "Transitivity", argFileName, "transitivity (global clustering coefficient)", networkName, networkHash)
+  queueCalc("nx.transitivity", "Transitivity", argFileName, "transitivity", networkName, networkHash)
   queueCalc("nx.is_connected", "Connected", argFileName, "isConnected", networkName, networkHash)
   queueCalc("nx.average_neighbor_degree", "Average Neighbor Degree", argFileName,
       "averageNeighborDegree", networkName, networkHash)
@@ -87,8 +87,8 @@ def process(argFileName, networkName, networkHash):
       "betweennessCentrality", networkName, networkHash)
   queueCalc("nx.graph_clique_number", "Clique Number", argFileName, "cliqueNumber",
       networkName, networkHash)
-  #queueCalc("nx.average_node_connectivity", "Average Node Connectivity", argFileName,
-      #"averageNodeConnectivity", networkName, networkHash)
+  queueCalc("nx.average_node_connectivity", "Average Node Connectivity", argFileName,
+      "averageNodeConnectivity", networkName, networkHash)
   queueCalc("nx.average_degree_connectivity", "Average Degree Connectivity", argFileName,
       "averageDegreeConnectivity", networkName, networkHash)
   queueCalc("nx.number_connected_components", "Number of Distinct Connected Components",
@@ -98,15 +98,15 @@ def process(argFileName, networkName, networkHash):
   queueCalc("nx.is_eulerian", "Eulerian", argFileName, "isEulerian", networkName, networkHash)
   queueCalc("nx.triadic_census", "Triadic Census", argFileName, "triadicCensus",
       networkName, networkHash)
-  #queueCalc("nx.dispersion", "Dispersion", argFileName, "dispersion", networkName, networkHash)
+  queueCalc("nx.dispersion", "Dispersion", argFileName, "dispersion", networkName, networkHash)
   queueCalc("nx.bipartite.is_bipartite", "Bipartite", argFileName, "isBipartite",
       networkName, networkHash)
   queueCalc("nx.eccentricity", "Eccentricity", argFileName, "eccentricity",
       networkName, networkHash)
   queueCalc("nx.rich_club_coefficient", "Rich Club Coefficient", argFileName,
       "richClubCoefficient", networkName, networkHash)
-  #queueCalc("nx.flow_hierarchy", "Flow Heirarchy", argFileName, "flowHierarchy",
-      #networkName, networkHash)
+  queueCalc("nx.flow_hierarchy", "Flow Heirarchy", argFileName, "flowHierarchy",
+      networkName, networkHash)
 
 # Parses a .gml or pajek-formatted network and loads as a networkx network object
 def loadNetwork(f, ext):
